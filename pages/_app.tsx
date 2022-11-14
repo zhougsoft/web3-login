@@ -15,14 +15,12 @@ import { InjectedConnector } from 'wagmi/connectors/injected'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 
-const providers = []
+const providers = [publicProvider()]
 
 const { INFURA_ID } = process.env
 if (INFURA_ID) {
   providers.push(infuraProvider({ apiKey: INFURA_ID }))
 }
-
-providers.push(publicProvider())
 
 const { chains, provider, webSocketProvider } = configureChains(
   defaultChains,

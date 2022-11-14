@@ -1,7 +1,8 @@
-import * as React from 'react'
+import { useState, useEffect } from 'react'
 import {
   useAccount,
   useConnect,
+  useDisconnect,
   useNetwork,
   useSignMessage,
   useEnsName,
@@ -15,7 +16,7 @@ function SignInButton({
   onSuccess: (args: { address: string }) => void
   onError: (args: { error: Error }) => void
 }) {
-  const [state, setState] = React.useState<{
+  const [state, setState] = useState<{
     loading?: boolean
     nonce?: string
   }>({})
@@ -33,7 +34,7 @@ function SignInButton({
   // Pre-fetch random nonce when button is rendered
   // to ensure deep linking works for WalletConnect
   // users on iOS when signing the SIWE message
-  React.useEffect(() => {
+  useEffect(() => {
     fetchNonce()
   }, [])
 
@@ -82,29 +83,32 @@ function SignInButton({
 
   return (
     <button disabled={!state.nonce || state.loading} onClick={signIn}>
-      Sign-In with Ethereum
+      {state.loading ? 'busy...' : 'log in with wallet'}
     </button>
   )
 }
 
+// ---------------------------------------------------------------------------------------------------
+
 export default function HomePage() {
   const { address, isConnected } = useAccount()
   const { connectors, connect } = useConnect()
+  const { disconnect } = useDisconnect()
   const { data: ensName } = useEnsName({ address })
 
-  const [state, setState] = React.useState<{
-    address?: string
+  const [state, setState] = useState<{
+    loggedInAddress?: string
     error?: Error
     loading?: boolean
   }>({})
 
   // Fetch user when:
-  React.useEffect(() => {
+  useEffect(() => {
     const handler = async () => {
       try {
         const res = await fetch('/api/me')
         const json = await res.json()
-        setState(x => ({ ...x, address: json.address }))
+        setState(x => ({ ...x, loggedInAddress: json.address }))
       } catch (_error) {}
     }
     // 1. page loads
@@ -121,22 +125,25 @@ export default function HomePage() {
         connected: {address}
         <br />
         ens: {ensName ? ensName : '...'}
-        <br />
-        {state.address ? (
+        {state.loggedInAddress ? (
           <div>
-            <div>Signed in as {state.address}</div>
+            <hr />
+            <div>logged in as {state.loggedInAddress}</div>
             <button
               onClick={async () => {
                 await fetch('/api/logout')
+                disconnect()
                 setState({})
               }}
             >
-              Sign Out
+              log out
             </button>
           </div>
         ) : (
           <SignInButton
-            onSuccess={({ address }) => setState(x => ({ ...x, address }))}
+            onSuccess={({ address }) =>
+              setState(x => ({ ...x, loggedInAddress: address }))
+            }
             onError={({ error }) => setState(x => ({ ...x, error }))}
           />
         )}
