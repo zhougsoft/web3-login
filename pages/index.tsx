@@ -1,25 +1,32 @@
-import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { InjectedConnector } from 'wagmi/connectors/injected'
+import { useAccount, useConnect, useDisconnect, useEnsName } from 'wagmi'
 
 export default function HomePage() {
   const { address, isConnected } = useAccount()
-  const { connect } = useConnect({
-    connector: new InjectedConnector(),
-  })
+  const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
+  const { data: ensName } = useEnsName({ address })
+
+  if (isConnected) {
+    return (
+      <div>
+        connected: {address}
+        <br />
+        ens: {ensName ? ensName : '...'}
+        <br />
+        <button onClick={() => disconnect()}>disconnect</button>
+      </div>
+    )
+  }
 
   return (
-    <>
-      <h1>web3 login</h1>
-
-      {isConnected ? (
-        <>
-          <button onClick={() => disconnect()}>disconnect</button>
-          <div>{`connected: ${address}`}</div>
-        </>
-      ) : (
-        <button onClick={() => connect()}>connect</button>
-      )}
-    </>
+    <div>
+      connect wallet
+      <br />
+      {connectors.map(connector => (
+        <button key={connector.id} onClick={() => connect({ connector })}>
+          {connector.name}
+        </button>
+      ))}
+    </div>
   )
 }

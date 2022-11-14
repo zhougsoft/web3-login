@@ -1,29 +1,58 @@
 import type { AppProps } from 'next/app'
-import {
-  createClient,
-  configureChains,
-  defaultChains,
-  WagmiConfig,
-} from 'wagmi'
-import { publicProvider } from 'wagmi/providers/public'
-import { SessionProvider } from 'next-auth/react'
 
-const { provider, webSocketProvider } = configureChains(defaultChains, [
+import {
+  WagmiConfig,
+  createClient,
+  defaultChains,
+  configureChains,
+} from 'wagmi'
+
+import { infuraProvider } from 'wagmi/providers/infura'
+import { publicProvider } from 'wagmi/providers/public'
+
+import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
+import { InjectedConnector } from 'wagmi/connectors/injected'
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
+import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
+
+const { chains, provider, webSocketProvider } = configureChains(defaultChains, [
+  infuraProvider({ apiKey: process.env.INFURA_ID }),
   publicProvider(),
 ])
 
 const client = createClient({
+  autoConnect: false, // must be false for SSR
+  persister: null, // must be null for SSR
+  connectors: [
+    new MetaMaskConnector({ chains }),
+    new CoinbaseWalletConnector({
+      chains,
+      options: {
+        appName: 'wagmi',
+      },
+    }),
+    new WalletConnectConnector({
+      chains,
+      options: {
+        qrcode: true,
+      },
+    }),
+    new InjectedConnector({
+      chains,
+      options: {
+        name: 'Injected',
+        shimDisconnect: true,
+      },
+    }),
+  ],
   provider,
   webSocketProvider,
-  autoConnect: true,
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <WagmiConfig client={client}>
-      <SessionProvider session={pageProps.session} refetchInterval={0}>
-        <Component {...pageProps} />
-      </SessionProvider>
+      <Component {...pageProps} />
     </WagmiConfig>
   )
 }
