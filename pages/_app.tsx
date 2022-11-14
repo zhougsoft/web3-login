@@ -15,10 +15,19 @@ import { InjectedConnector } from 'wagmi/connectors/injected'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 
-const { chains, provider, webSocketProvider } = configureChains(defaultChains, [
-  infuraProvider({ apiKey: process.env.INFURA_ID }),
-  publicProvider(),
-])
+const providers = []
+
+const { INFURA_ID } = process.env
+if (INFURA_ID) {
+  providers.push(infuraProvider({ apiKey: INFURA_ID }))
+}
+
+providers.push(publicProvider())
+
+const { chains, provider, webSocketProvider } = configureChains(
+  defaultChains,
+  providers
+)
 
 const client = createClient({
   autoConnect: false, // must be false for SSR
