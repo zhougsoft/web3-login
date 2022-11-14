@@ -28,8 +28,7 @@ const { chains, provider, webSocketProvider } = configureChains(
 )
 
 const client = createClient({
-  autoConnect: false, // must be false for SSR
-  persister: null, // must be null for SSR
+  autoConnect: true,
   connectors: [
     new MetaMaskConnector({ chains }),
     new CoinbaseWalletConnector({

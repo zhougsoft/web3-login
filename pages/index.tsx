@@ -9,13 +9,28 @@ import {
 } from 'wagmi'
 import { SiweMessage } from 'siwe'
 
-function SignInButton({
-  onSuccess,
-  onError,
-}: {
-  onSuccess: (args: { address: string }) => void
+// hook to determine if code is executing on the client side in a mounted component
+function useIsMounted(): boolean {
+  const [isMounted, setIsMounted] = useState<boolean>(false)
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+  return isMounted
+}
+
+// ---------------------------------------------------------------------------------------------------
+
+interface SignInButtonProps {
+  onSuccess: (args: { loggedInAddress: string }) => void
   onError: (args: { error: Error }) => void
-}) {
+}
+
+function SignInButton({ onSuccess, onError }: SignInButtonProps) {
+  const isMounted = useIsMounted()
+  const { address } = useAccount()
+  const { chain: activeChain } = useNetwork()
+  const { signMessageAsync } = useSignMessage()
+
   const [state, setState] = useState<{
     loading?: boolean
     nonce?: string
@@ -38,11 +53,9 @@ function SignInButton({
     fetchNonce()
   }, [])
 
-  const { address } = useAccount()
-  const { chain: activeChain } = useNetwork()
-  const { signMessageAsync } = useSignMessage()
-
   const signIn = async () => {
+    if (!isMounted) return
+
     try {
       const chainId = activeChain?.id
       if (!address || !chainId) return
@@ -73,7 +86,7 @@ function SignInButton({
       if (!verifyRes.ok) throw new Error('Error verifying message')
 
       setState(x => ({ ...x, loading: false }))
-      onSuccess({ address })
+      onSuccess({ loggedInAddress: address })
     } catch (error) {
       setState(x => ({ ...x, loading: false, nonce: undefined }))
       onError({ error: error as Error })
@@ -91,6 +104,7 @@ function SignInButton({
 // ---------------------------------------------------------------------------------------------------
 
 export default function HomePage() {
+  const isMounted = useIsMounted()
   const { address, isConnected } = useAccount()
   const { connectors, connect } = useConnect()
   const { disconnect } = useDisconnect()
@@ -119,6 +133,9 @@ export default function HomePage() {
     return () => window.removeEventListener('focus', handler)
   }, [])
 
+  // ensure component only executes on the client side to avoid re-hydration error
+  if (!isMounted) return <></>
+
   if (isConnected) {
     return (
       <div>
@@ -141,8 +158,8 @@ export default function HomePage() {
           </div>
         ) : (
           <SignInButton
-            onSuccess={({ address }) =>
-              setState(x => ({ ...x, loggedInAddress: address }))
+            onSuccess={({ loggedInAddress }) =>
+              setState(x => ({ ...x, loggedInAddress }))
             }
             onError={({ error }) => setState(x => ({ ...x, error }))}
           />
@@ -161,4 +178,6 @@ export default function HomePage() {
       ))}
     </div>
   )
+
+  return <></>
 }
