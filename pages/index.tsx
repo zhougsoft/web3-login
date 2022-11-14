@@ -1,107 +1,13 @@
 import { useState, useEffect } from 'react'
-import {
-  useAccount,
-  useConnect,
-  useDisconnect,
-  useNetwork,
-  useSignMessage,
-  useEnsName,
-} from 'wagmi'
-import { SiweMessage } from 'siwe'
+import { useAccount, useConnect, useDisconnect, useEnsName } from 'wagmi'
+import { useIsMounted } from '../hooks/useIsMounted'
+import SignInButton from '../components/SignInButton'
 
-// hook to determine if code is executing on the client side in a mounted component
-function useIsMounted(): boolean {
-  const [isMounted, setIsMounted] = useState<boolean>(false)
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
-  return isMounted
+interface HomePageState {
+  loggedInAddress?: string
+  error?: Error
+  loading?: boolean
 }
-
-// ---------------------------------------------------------------------------------------------------
-
-interface SignInButtonProps {
-  onSuccess: (args: { loggedInAddress: string }) => void
-  onError: (args: { error: Error }) => void
-}
-
-function SignInButton({ onSuccess, onError }: SignInButtonProps) {
-  const isMounted = useIsMounted()
-  const { address } = useAccount()
-  const { chain: activeChain } = useNetwork()
-  const { signMessageAsync } = useSignMessage()
-
-  const [state, setState] = useState<{
-    loading?: boolean
-    nonce?: string
-  }>({})
-
-  const fetchNonce = async () => {
-    try {
-      const nonceRes = await fetch('/api/nonce')
-      const nonce = await nonceRes.text()
-      setState(x => ({ ...x, nonce }))
-    } catch (error) {
-      setState(x => ({ ...x, error: error as Error }))
-    }
-  }
-
-  // Pre-fetch random nonce when button is rendered
-  // to ensure deep linking works for WalletConnect
-  // users on iOS when signing the SIWE message
-  useEffect(() => {
-    fetchNonce()
-  }, [])
-
-  const signIn = async () => {
-    if (!isMounted) return
-
-    try {
-      const chainId = activeChain?.id
-      if (!address || !chainId) return
-
-      setState(x => ({ ...x, loading: true }))
-      // Create SIWE message with pre-fetched nonce and sign with wallet
-      const message = new SiweMessage({
-        domain: window.location.host,
-        address,
-        statement: 'Sign in with Ethereum to the app.',
-        uri: window.location.origin,
-        version: '1',
-        chainId,
-        nonce: state.nonce,
-      })
-      const signature = await signMessageAsync({
-        message: message.prepareMessage(),
-      })
-
-      // Verify signature
-      const verifyRes = await fetch('/api/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message, signature }),
-      })
-      if (!verifyRes.ok) throw new Error('Error verifying message')
-
-      setState(x => ({ ...x, loading: false }))
-      onSuccess({ loggedInAddress: address })
-    } catch (error) {
-      setState(x => ({ ...x, loading: false, nonce: undefined }))
-      onError({ error: error as Error })
-      fetchNonce()
-    }
-  }
-
-  return (
-    <button disabled={!state.nonce || state.loading} onClick={signIn}>
-      {state.loading ? 'busy...' : 'log in with wallet'}
-    </button>
-  )
-}
-
-// ---------------------------------------------------------------------------------------------------
 
 export default function HomePage() {
   const isMounted = useIsMounted()
@@ -110,11 +16,7 @@ export default function HomePage() {
   const { disconnect } = useDisconnect()
   const { data: ensName } = useEnsName({ address })
 
-  const [state, setState] = useState<{
-    loggedInAddress?: string
-    error?: Error
-    loading?: boolean
-  }>({})
+  const [state, setState] = useState<HomePageState>({})
 
   // Fetch user when:
   useEffect(() => {
@@ -178,6 +80,4 @@ export default function HomePage() {
       ))}
     </div>
   )
-
-  return <></>
 }
