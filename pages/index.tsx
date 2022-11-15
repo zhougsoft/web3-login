@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useEnsName } from 'wagmi'
 import { useWeb3 } from '../hooks/useWeb3'
-import SignInButton from '../components/SignInButton'
+import LoginButton from '../components/LoginButton'
 import styles from '../styles/main.module.css'
 
 export default function HomePage() {
@@ -9,7 +9,6 @@ export default function HomePage() {
   const { data: ensName } = useEnsName({ address })
 
   const [loggedInAddress, setLoggedInAddress] = useState<string | undefined>()
-  const [error, setError] = useState<Error | undefined>()
   const [isLoading, setIsLoading] = useState<boolean | undefined>()
 
   const fetchLoggedInAddress = async () => {
@@ -19,7 +18,7 @@ export default function HomePage() {
       setLoggedInAddress(result.address)
       setIsLoading(false)
     } catch (error) {
-      console.error(error)
+      console.error('error fetching logged in address', error)
     }
   }
 
@@ -30,9 +29,8 @@ export default function HomePage() {
     setIsLoading(false)
   }
 
-  // fetch active user from backend if:
+  // fetch authenticated user on page load
   useEffect(() => {
-    // 1. page loads
     fetchLoggedInAddress()
   }, [])
 
@@ -63,15 +61,17 @@ export default function HomePage() {
           {/* is logged in? */}
           {loggedInAddress ? (
             <>
-              <div>logged in as {loggedInAddress}</div>
+              <ul>
+                <li>logged in as {loggedInAddress}</li>
+              </ul>
               <button onClick={() => handleLogout()}>log out</button>
             </>
           ) : (
-            <SignInButton
+            <LoginButton
               onSuccess={({ loggedInAddress }) =>
                 setLoggedInAddress(loggedInAddress)
               }
-              onError={({ error }) => setError(error)}
+              onError={({ error }) => console.error('error logging in', error)}
             />
           )}
         </div>
