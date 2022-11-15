@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useAccount, useConnect, useDisconnect, useEnsName } from 'wagmi'
-import { useIsMounted } from '../hooks/useIsMounted'
+import { useEnsName } from 'wagmi'
+import { useWeb3 } from '../hooks/useWeb3'
 import SignInButton from '../components/SignInButton'
 
 interface HomePageState {
@@ -10,33 +10,32 @@ interface HomePageState {
 }
 
 export default function HomePage() {
-  const isMounted = useIsMounted()
-  const { address, isConnected } = useAccount()
-  const { connectors, connect } = useConnect()
-  const { disconnect } = useDisconnect()
+  const { connect, disconnect, isConnected, address, connectors } = useWeb3()
   const { data: ensName } = useEnsName({ address })
-
   const [state, setState] = useState<HomePageState>({})
 
-  // Fetch user when:
-  useEffect(() => {
-    const handler = async () => {
-      try {
-        const res = await fetch('/api/me')
-        const json = await res.json()
-        setState(x => ({ ...x, loggedInAddress: json.address }))
-      } catch (_error) {}
+  const fetchActiveUser = async () => {
+    try {
+      const result = await fetch('/api/me').then(res => res.json())
+      setState(x => ({ ...x, loggedInAddress: result.address }))
+    } catch (error) {
+      console.error(error)
     }
+  }
+
+  // fetch active user from backend if:
+  useEffect(() => {
     // 1. page loads
-    handler()
+    fetchActiveUser()
 
     // 2. window is focused (in case user logs out of another window)
-    window.addEventListener('focus', handler)
-    return () => window.removeEventListener('focus', handler)
+    window.addEventListener('focus', fetchActiveUser)
+    return () => window.removeEventListener('focus', fetchActiveUser)
   }, [])
 
-  // ensure component only executes on the client side to avoid re-hydration error
-  if (!isMounted) return <></>
+  useEffect(() => {
+    console.log({ loggedInAddress: state.loggedInAddress })
+  }, [state.loggedInAddress])
 
   if (isConnected) {
     return (
@@ -73,7 +72,7 @@ export default function HomePage() {
   return (
     <div>
       <p>connect wallet</p>
-      {connectors.map(connector => (
+      {connectors?.map(connector => (
         <button key={connector.id} onClick={() => connect({ connector })}>
           {connector.name}
         </button>

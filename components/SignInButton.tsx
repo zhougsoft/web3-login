@@ -1,26 +1,24 @@
 import { useState, useEffect } from 'react'
-import { useAccount, useNetwork, useSignMessage } from 'wagmi'
 import { SiweMessage } from 'siwe'
-import { useIsMounted } from '../hooks/useIsMounted'
+import { useWeb3 } from '../hooks/useWeb3'
 
 interface SignInButtonProps {
   onSuccess: (args: { loggedInAddress: string }) => void
   onError: (args: { error: Error }) => void
 }
 
+interface SignInButtonState {
+  loading?: boolean
+  nonce?: string
+}
+
 export default function SignInButton({
   onSuccess,
   onError,
 }: SignInButtonProps) {
-  const isMounted = useIsMounted()
-  const { address } = useAccount()
-  const { chain: activeChain } = useNetwork()
-  const { signMessageAsync } = useSignMessage()
+  const { address, activeChain, signMessageAsync } = useWeb3()
 
-  const [state, setState] = useState<{
-    loading?: boolean
-    nonce?: string
-  }>({})
+  const [state, setState] = useState<SignInButtonState>({})
 
   const fetchNonce = async () => {
     try {
@@ -40,8 +38,6 @@ export default function SignInButton({
   }, [])
 
   const signIn = async () => {
-    if (!isMounted) return
-
     try {
       const chainId = activeChain?.id
       if (!address || !chainId) return
