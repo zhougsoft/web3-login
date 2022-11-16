@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 
 import {
   WagmiConfig,
@@ -10,17 +11,16 @@ import {
   useConnect,
   useDisconnect,
   useNetwork,
-  useSignMessage,
 } from 'wagmi'
 
 import { publicProvider } from 'wagmi/providers/public'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { infuraProvider } from 'wagmi/providers/infura'
 
-import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
-import { InjectedConnector } from 'wagmi/connectors/injected'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
+import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
+import { InjectedConnector } from 'wagmi/connectors/injected'
 
 interface Web3ProviderProps {
   children?: ReactNode
@@ -75,21 +75,35 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   return <WagmiConfig client={client}>{children}</WagmiConfig>
 }
 
-// aggregation of wagmi hooks
+// aggregation of wallet connection state hooks
 export function useWeb3() {
+  const router = useRouter()
   const { isConnected, address } = useAccount()
   const { chain: activeChain } = useNetwork()
   const { connectors, connect } = useConnect()
   const { disconnect } = useDisconnect()
-  const { signMessageAsync } = useSignMessage()
-
   const [isMounted, setIsMounted] = useState<boolean>(false)
+
+  // to check if mounted so that wallet connection code executes
+  // exclusively on the client side, avoiding re-hydration errors
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  // will only return *if mounted* so that wallet connection code
-  // executes exclusively on the client side, avoiding re-hydration errors
+  // apply wallet setting change handlers on mount
+  useEffect(() => {
+    const { ethereum } = window
+    if (isMounted && ethereum?.on) {
+      ethereum.on('accountsChanged', () => {
+        router.reload()
+      })
+
+      ethereum.on('chainChanged', () => {
+        router.reload()
+      })
+    }
+  }, [isMounted])
+
   return isMounted
     ? {
         isConnected,
@@ -98,7 +112,6 @@ export function useWeb3() {
         connectors,
         connect,
         disconnect,
-        signMessageAsync,
       }
     : {}
 }

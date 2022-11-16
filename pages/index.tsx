@@ -1,51 +1,49 @@
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useEnsName } from 'wagmi'
 import { useWeb3 } from '../hooks/useWeb3'
-import LoginButton from '../components/LoginButton'
+import { useAuth } from '../hooks/useAuth'
 import styles from '../styles/main.module.css'
 
 export default function HomePage() {
-  const { connect, disconnect, isConnected, address, connectors } = useWeb3()
+  const { connect, disconnect, isConnected, address, activeChain, connectors } =
+    useWeb3()
+  const {
+    login,
+    logout,
+    loggedInAddress,
+    refreshLoggedInAddress,
+    error,
+    isBusy,
+  } = useAuth()
   const { data: ensName } = useEnsName({ address })
 
-  const [loggedInAddress, setLoggedInAddress] = useState<string | undefined>()
-  const [isLoading, setIsLoading] = useState<boolean | undefined>()
-
-  const fetchLoggedInAddress = async () => {
-    try {
-      setIsLoading(true)
-      const result = await fetch('/api/me').then(res => res.json())
-      setLoggedInAddress(result.address)
-      setIsLoading(false)
-    } catch (error) {
-      console.error('error fetching logged in address', error)
+  const handleLogin = useCallback(() => {
+    if (address && activeChain) {
+      login(address, activeChain.id)
     }
-  }
+  }, [address, activeChain])
 
   const handleLogout = async () => {
-    setIsLoading(true)
-    await fetch('/api/logout')
-    setLoggedInAddress(undefined)
-    setIsLoading(false)
+    await logout()
   }
 
-  // fetch authenticated user on page load
+  // fetch address login state on page load
   useEffect(() => {
-    fetchLoggedInAddress()
+    refreshLoggedInAddress()
   }, [])
 
   // if authenticated, add listener to refetch auth status on focus in case user logs out in a different window
   useEffect(() => {
     if (loggedInAddress !== undefined) {
-      window.addEventListener('focus', fetchLoggedInAddress)
-      return () => window.removeEventListener('focus', fetchLoggedInAddress)
+      window.addEventListener('focus', refreshLoggedInAddress)
+      return () => window.removeEventListener('focus', refreshLoggedInAddress)
     }
   }, [loggedInAddress])
 
   // display UI based on wallet connection & authentication state
   const renderUI = () => {
-    if (isLoading) {
-      return <div>LOADING...</div>
+    if (error) {
+      return <div>login error: check console</div>
     }
 
     // is wallet connected?
@@ -58,27 +56,25 @@ export default function HomePage() {
           </ul>
           <button onClick={() => disconnect()}>disconnect</button>
           <hr />
-          {/* is logged in? */}
+
+          {/* is user logged in? */}
           {loggedInAddress ? (
             <>
               <ul>
                 <li>logged in as {loggedInAddress}</li>
               </ul>
-              <button onClick={() => handleLogout()}>log out</button>
+              <button onClick={handleLogout}>log out</button>
             </>
           ) : (
-            <LoginButton
-              onSuccess={({ loggedInAddress }) =>
-                setLoggedInAddress(loggedInAddress)
-              }
-              onError={({ error }) => console.error('error logging in', error)}
-            />
+            <button disabled={isBusy} onClick={handleLogin}>
+              {isBusy ? 'busy...' : 'log in with wallet'}
+            </button>
           )}
         </div>
       )
     }
 
-    // no wallet connection, is not logged in
+    // no wallet connection
     return (
       <div>
         <p>connect wallet</p>
