@@ -1,3 +1,9 @@
+
+
+// next-auth?
+// https://docs.login.xyz/integrations/nextauth.js
+
+
 // user account details page
 // shows account of connected wallet
 
