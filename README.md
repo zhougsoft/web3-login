@@ -4,7 +4,7 @@
 
 wallet-based account management powered by off-chain authenticated sessions implementing [EIP-4361: Sign-In with Ethereum](https://eips.ethereum.org/EIPS/eip-4361)
 
-_note: obtaining an [infura](https://infura.io) API key is highly recommended when running this app_
+_note: obtaining an [infura](https://infura.io) or [alchemy](https://www.alchemy.com) node key is highly recommended when running this app_
 
 ## to run
 
