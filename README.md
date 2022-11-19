@@ -14,7 +14,11 @@ authenticate using _Sign-In with Ethereum_ to access the protected `/api/magic-t
    ```
    npm install
    ```
-1. make a copy of `.env.example` named `.env.local` and add credentials
+1. make a copy of `.env.example` named `.env` and add credentials
+1. run database setup migration:
+   ```
+   npm run migrate:up
+   ```
 1. run local development server:
    ```
    npm run dev

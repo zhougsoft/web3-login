@@ -6,17 +6,21 @@
     "dev:turbo": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:up": "node ./db/migrations/up.js",
+    "migrate:down": "node ./db/migrations/down.js"
   },
   "dependencies": {
     "@types/node": "18.11.9",
     "@types/react": "18.0.25",
     "@types/react-dom": "18.0.8",
+    "dotenv": "^16.0.3",
     "eslint": "8.27.0",
     "eslint-config-next": "13.0.2",
     "ethers": "^5.7.1",
     "next": "latest",
     "next-auth": "^4.16.4",
+    "postgres": "^3.3.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "siwe": "^2.0.5",
