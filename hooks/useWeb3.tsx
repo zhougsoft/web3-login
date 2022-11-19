@@ -12,6 +12,7 @@ import {
   useConnect,
   useDisconnect,
   useNetwork,
+  useSignMessage,
 } from 'wagmi'
 
 // --- providers
@@ -78,14 +79,15 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   return <WagmiConfig client={client}>{children}</WagmiConfig>
 }
 
-// aggregation of wallet connection state hooks
 export function useWeb3() {
   const router = useRouter()
-  const { isConnected, address } = useAccount()
-  const { chain: activeChain } = useNetwork()
+  const [isMounted, setIsMounted] = useState<boolean>(false)
+
   const { connectors, connect } = useConnect()
   const { disconnect } = useDisconnect()
-  const [isMounted, setIsMounted] = useState<boolean>(false)
+  const { isConnected, address } = useAccount()
+  const { chain: activeChain } = useNetwork()
+  const { signMessageAsync } = useSignMessage()
 
   // to check if mounted so that wallet connection code executes
   // exclusively on the client side, avoiding re-hydration errors
@@ -115,6 +117,7 @@ export function useWeb3() {
         connectors,
         connect,
         disconnect,
+        signMessageAsync,
       }
     : {}
 }

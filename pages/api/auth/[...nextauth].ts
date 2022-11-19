@@ -5,6 +5,9 @@ import { getCsrfToken } from 'next-auth/react'
 import { SiweMessage } from 'siwe'
 
 export default async function auth(req: NextApiRequest, res: NextApiResponse) {
+  const { NEXTAUTH_SECRET } = process.env
+  if (!NEXTAUTH_SECRET) throw new Error('no NEXTAUTH_SECRET env variable set')
+
   const providers = [
     CredentialsProvider({
       name: 'Ethereum',
@@ -27,11 +30,11 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
 
           // signature authentication logic
           const siwe = new SiweMessage(JSON.parse(credentials?.message || '{}'))
-          const nextAuthUrl = new URL(NEXTAUTH_URL)
+          const authUrl = new URL(NEXTAUTH_URL)
 
           const result = await siwe.verify({
             signature: credentials?.signature || '',
-            domain: nextAuthUrl.host,
+            domain: authUrl.host,
             nonce: await getCsrfToken({ req }),
           })
 
@@ -52,9 +55,7 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
     }),
   ]
 
-
-
-  // hide Sign-In with Ethereum from the default sign page
+  // hide next-auth provided credential fields from the default `signin` page
   const isDefaultSigninPage =
     req.method === 'GET' && req.query?.nextauth?.includes('signin')
 
@@ -67,7 +68,7 @@ export default async function auth(req: NextApiRequest, res: NextApiResponse) {
     session: {
       strategy: 'jwt',
     },
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: NEXTAUTH_SECRET,
     callbacks: {
       async session({ session, token }: { session: any; token: any }) {
         session.address = token.sub
