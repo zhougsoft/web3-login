@@ -1,30 +1,43 @@
 import type { GetServerSidePropsContext } from 'next'
 import { getCsrfToken, useSession, signIn, signOut } from 'next-auth/react'
+import { SiweMessage } from 'siwe'
 import { useWeb3 } from '../hooks/useWeb3'
 
 export default function HomePage() {
-  const { isConnected, address, connect, signMessageAsync } = useWeb3()
+  const { isConnected, address, activeChain, connect, signMessageAsync } =
+    useWeb3()
   const { data: session } = useSession()
 
+  // prompts user to sign message with wallet, then authenticates signature
   async function handleLogin(e: any) {
     e.preventDefault()
-    if (!isConnected || !address) {
+    if (!isConnected || !address || !activeChain) {
       console.warn('HomePage - handleLogin() called with no wallet connected')
       return
     }
 
-    // -------------TODO-----------------
+    // create message for user to sign
+    const message = new SiweMessage({
+      domain: window.location.host,
+      address,
+      statement: 'Sign in with Ethereum',
+      uri: window.location.origin,
+      version: '1',
+      chainId: activeChain.id,
+      nonce: await getCsrfToken(),
+    })
 
-    console.info('handleLogin() called')
+    // sign message with wallet
+    const signature = await signMessageAsync({
+      message: message.prepareMessage(),
+    })
 
-    // sign message
-
-    // get results
-
-    // if valid, sign in:
-    // signIn('credentials', {})
-
-    // ----------------------------------
+    // authenticate signature
+    signIn('credentials', {
+      message: JSON.stringify(message),
+      signature,
+      redirect: false,
+    })
   }
 
   async function handleLogout(e: any) {
@@ -54,8 +67,11 @@ export default function HomePage() {
         {session ? (
           <>
             <hr />
+            logged in as:
+            <small>
+              <pre>{JSON.stringify(session, null, 2)}</pre>
+            </small>
             <button onClick={handleLogout}>logout</button>
-            <small>logged in as {JSON.stringify(session)}</small>
           </>
         ) : (
           <>
