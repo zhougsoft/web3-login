@@ -5,7 +5,7 @@ import { getSession } from 'next-auth/react'
 // requester must have `session`
 
 interface ResponseData {
-  content?: string
+  data?: string
   error?: string
 }
 
@@ -16,14 +16,12 @@ export default async (
   const session = await getSession({ req })
 
   if (session) {
-    res.send({
-      content:
-        'This is protected content. You can access this content because you are signed in.',
+    res.status(200).send({
+      data: 'congratulations! you got the magic thing.\nyou can access the magic thing because you are logged in!',
     })
   } else {
-    res.send({
-      error:
-        'You must be signed in to view the protected content on this page.',
+    res.status(403).send({
+      error: 'you must be logged in to access the magic thing :(',
     })
   }
 }

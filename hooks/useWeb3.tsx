@@ -83,7 +83,7 @@ export function useWeb3() {
   const router = useRouter()
   const [isMounted, setIsMounted] = useState<boolean>(false)
 
-  const { connectors, connect } = useConnect()
+  const { connect, connectors, pendingConnector } = useConnect()
   const { disconnect } = useDisconnect()
   const { isConnected, address } = useAccount()
   const { chain: activeChain } = useNetwork()
@@ -115,6 +115,7 @@ export function useWeb3() {
         address,
         activeChain,
         connectors,
+        pendingConnector,
         connect,
         disconnect,
         signMessageAsync,
