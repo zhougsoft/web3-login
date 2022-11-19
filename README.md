@@ -12,11 +12,11 @@ authenticate using _Sign-In with Ethereum_ to access the protected `/api/magic-t
 
 1. install dependencies:
    ```
-   yarn
+   npm install
    ```
 1. make a copy of `.env.example` named `.env.local` and add credentials
 1. run local development server:
    ```
-   yarn dev
+   npm run dev
    ```
 1. check out `localhost:3000` in the browser!
