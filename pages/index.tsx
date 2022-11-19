@@ -1,91 +1,82 @@
-import { useCallback, useEffect } from 'react'
-import { useEnsName } from 'wagmi'
-import { useWeb3 } from '../hooks/useWeb3'
-import { useAuth } from '../hooks/useAuth'
-import styles from '../styles/main.module.css'
+// next-auth + siwe example:
+// https://github.com/spruceid/siwe-next-auth-example
+
+// TODO:
+// user account details page
+// shows account of connected wallet
+// allow user to edit "current vibe" (auth-gated + DB required to persist data)
+
+import type { GetServerSidePropsContext } from 'next'
+import { getCsrfToken, useSession, signIn, signOut } from 'next-auth/react'
 
 export default function HomePage() {
-  const { connect, disconnect, isConnected, address, activeChain, connectors } =
-    useWeb3()
-  const {
-    login,
-    logout,
-    loggedInAddress,
-    refreshLoggedInAddress,
-    error,
-    isBusy,
-  } = useAuth()
-  const { data: ensName } = useEnsName({ address })
 
-  const handleLogin = useCallback(() => {
-    if (address && activeChain) {
-      login(address, activeChain.id)
-    }
-  }, [address, activeChain])
 
-  const handleLogout = async () => {
-    await logout()
+
+
+  // REQUIRE:
+  // web3 stuff - account etc
+  // session info
+  const { data: session } = useSession()
+
+
+
+
+
+  async function handleLogin(e: any) {
+    e.preventDefault()
+
+    // wallet connected?
+    // no - connect wallet, continue
+
+    // sign message
+
+    // send auth req
+
+    // get results
+
+    // update ui
   }
 
-  // fetch address login state on page load
-  useEffect(() => {
-    refreshLoggedInAddress()
-  }, [])
 
-  // if authenticated, add listener to refetch auth status on focus in case user logs out in a different window
-  useEffect(() => {
-    if (loggedInAddress !== undefined) {
-      window.addEventListener('focus', refreshLoggedInAddress)
-      return () => window.removeEventListener('focus', refreshLoggedInAddress)
-    }
-  }, [loggedInAddress])
 
-  // display UI based on wallet connection & authentication state
-  const renderUI = () => {
-    if (error) {
-      return <div>login error: check console</div>
-    }
 
-    // is wallet connected?
-    if (isConnected) {
-      return (
-        <div>
-          <ul>
-            <li>connected: {address}</li>
-            <li>ens: {ensName ? ensName : '...'}</li>
-          </ul>
-          <button onClick={() => disconnect()}>disconnect</button>
-          <hr />
 
-          {/* is user logged in? */}
-          {loggedInAddress ? (
-            <>
-              <ul>
-                <li>logged in as {loggedInAddress}</li>
-              </ul>
-              <button onClick={handleLogout}>log out</button>
-            </>
-          ) : (
-            <button disabled={isBusy} onClick={handleLogin}>
-              {isBusy ? 'busy...' : 'log in with wallet'}
-            </button>
-          )}
-        </div>
-      )
-    }
 
-    // no wallet connection
+
+  async function handleLogout(e: any) {
+    e.preventDefault()
+    signOut()
+  }
+
+
+
+
+
+  
+
+  // if session exists, display account & logout button
+  if (session) {
     return (
-      <div>
-        <p>connect wallet</p>
-        {connectors?.map(connector => (
-          <button key={connector.id} onClick={() => connect({ connector })}>
-            {connector.name}
-          </button>
-        ))}
-      </div>
+      <>
+        <div>Signed in as {session?.user?.email}</div>
+        <button onClick={handleLogout}>logout</button>
+      </>
     )
-  } // end renderUI()
+  }
+  // no session, display login button
+  return (
+    <>
+      <div>not logged in</div>
+      <button onClick={handleLogin}>login</button>
+    </>
+  )
+}
 
-  return <main className={styles.main}>{renderUI()}</main>
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  return {
+    props: {
+      csrfToken: await getCsrfToken(context),
+    },
+  }
 }

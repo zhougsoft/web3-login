@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 
+// --- wagmi utils
 import {
   WagmiConfig,
   createClient,
@@ -13,10 +14,12 @@ import {
   useNetwork,
 } from 'wagmi'
 
+// --- providers
 import { publicProvider } from 'wagmi/providers/public'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { infuraProvider } from 'wagmi/providers/infura'
 
+// --- connectors
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
