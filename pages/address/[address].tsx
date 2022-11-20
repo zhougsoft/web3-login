@@ -3,17 +3,23 @@ import Link from 'next/link'
 import type Profile from '../../interfaces/Profile'
 import { read as readProfile } from '../../services/profiles'
 
-interface ProfilePageProps {
-  profile: Profile
+// a page to view a user's profile via their ethereum address
+
+interface AddressPageProps {
+  profile?: Profile
 }
 
-export default function ProfilePage({ profile }: ProfilePageProps) {
+export default function AddressPage({ profile }: AddressPageProps) {
   return (
     <>
       <h1>profile page</h1>
       <Link href='/'>home</Link>
       <hr />
-      <pre>{JSON.stringify(profile, null, 2)}</pre>
+      {profile ? (
+        <pre>{JSON.stringify(profile, null, 2)}</pre>
+      ) : (
+        <div>no profile...</div>
+      )}
     </>
   )
 }
@@ -31,6 +37,5 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // fetch & return profile record from database if exists
   const [profile] = await readProfile(params.address)
-  if (!profile) return { notFound: true }
-  return { props: { profile } }
+  return { props: { profile: profile || null } }
 }

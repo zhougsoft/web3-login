@@ -135,72 +135,84 @@ export default function HomePage() {
   }
 
   // ============================================================================ render logic
+  const renderUi = () => {
+    // is loading/not ready
+    if (isBusy || !connect) return <em>busy...</em>
 
-  // is loading/not ready
-  if (isBusy || !connect) return <em>busy...</em>
+    // no wallet connected
+    if (!isConnected && connect) {
+      return (
+        <>
+          {connectors.map(connector => (
+            <button
+              disabled={!connector.ready}
+              key={connector.id}
+              onClick={() => connect({ connector })}
+            >
+              {connector.name.toLowerCase()}
+              {!connector.ready && ' (unsupported)'}
+              {isBusy &&
+                connector.id === pendingConnector?.id &&
+                ' (connecting)'}
+            </button>
+          ))}
+        </>
+      )
+    }
 
-  // no wallet connected
-  if (!isConnected && connect) {
-    return (
-      <>
-        {connectors.map(connector => (
-          <button
-            disabled={!connector.ready}
-            key={connector.id}
-            onClick={() => connect({ connector })}
-          >
-            {connector.name.toLowerCase()}
-            {!connector.ready && ' (unsupported)'}
-            {isBusy && connector.id === pendingConnector?.id && ' (connecting)'}
-          </button>
-        ))}
-      </>
-    )
-  }
-
-  // wallet is connected
-  if (isConnected && address) {
-    return (
-      <>
-        <div>
-          <span>
-            <em>connected:</em> {address} {profile ? <>☑</> : <></>}
-          </span>
-          <br />
-          <span>
-            status: <em>{profile?.status || 'no status...'}</em>
-          </span>
-          {' | '}
-          <Link href={`/profile/${address}`}>profile page</Link>
-        </div>
-
-        {/*  if session exists, display profile controls & logout button */}
-        {/*  else, display login & disconnect button */}
-        {session ? (
-          <>
-            <hr />
-            <form onSubmit={handleUpdateStatusSubmit}>
-              <input
-                type='text'
-                onChange={e => setStatusInput(e.target.value)}
-              />
-              <button type='submit'>
-                <strong>update status</strong>
-              </button>
-            </form>
+    // wallet is connected
+    if (isConnected && address) {
+      return (
+        <>
+          <div>
+            <span>
+              <em>connected:</em> {address} {profile ? <>☑</> : <></>}
+            </span>
             <br />
-            <button onClick={handleLogout}>logout</button>
-          </>
-        ) : (
-          <>
-            <button onClick={() => disconnect()}>disconnect</button>
-            <button onClick={handleLogin}>login</button>
-          </>
-        )}
-      </>
-    )
-  }
-} // end HomePage
+            <span>
+              status: <em>{profile?.status || 'no status...'}</em>
+            </span>
+            {' | '}
+            <Link href={`/profile`}>edit profile</Link>
+          </div>
+
+          {/*  if session exists, display profile controls & logout button */}
+          {/*  else, display login & disconnect button */}
+          {session ? (
+            <>
+              <hr />
+              <form onSubmit={handleUpdateStatusSubmit}>
+                <input
+                  type='text'
+                  onChange={e => setStatusInput(e.target.value)}
+                />
+                <button type='submit'>
+                  <strong>update status</strong>
+                </button>
+              </form>
+              <br />
+              <button onClick={handleLogout}>logout</button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => disconnect()}>disconnect</button>
+              <button onClick={handleLogin}>login</button>
+            </>
+          )}
+        </>
+      )
+    }
+  } // end renderUi()
+
+  // ============================================================================ render
+  return (
+    <div>
+      <h1>home</h1>
+      <hr />
+      {renderUi()}
+    </div>
+  )
+} // end HomePage()
 
 // ============================================================================ getServerSideProps
 export async function getServerSideProps(context: GetServerSidePropsContext) {

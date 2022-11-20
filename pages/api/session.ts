@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getSession } from 'next-auth/react'
 import type { Session } from 'next-auth'
 
-// route to fetch active session from via the api
+// route to fetch the active session via api
 
 export default async (
   req: NextApiRequest,

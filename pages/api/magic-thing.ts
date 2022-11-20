@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getSession } from 'next-auth/react'
 
 // example route that requires a user to be authenticated
-// requester must have `session`
+// requester must have an active session
 
 interface ResponseData {
   data?: string
