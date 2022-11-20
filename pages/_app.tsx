@@ -2,6 +2,7 @@ import type { AppProps } from 'next/app'
 import type { Session } from 'next-auth'
 import { SessionProvider } from 'next-auth/react'
 import { Web3Provider } from '../hooks/useWeb3'
+import '../global.css'
 
 export default function App({
   Component,
