@@ -4,7 +4,6 @@ import { getSession } from 'next-auth/react'
 import type Profile from '../../../interfaces/Profile'
 import {
   create as createProfile,
-  read as readProfile,
   update as updateProfile,
   del as deleteProfile,
 } from '../../../services/profiles'

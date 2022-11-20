@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { GetServerSidePropsContext } from 'next'
+import Link from 'next/link'
 import { getCsrfToken, useSession, signIn, signOut } from 'next-auth/react'
 import { SiweMessage } from 'siwe'
 import type Profile from '../interfaces/Profile'
@@ -35,7 +36,7 @@ export default function HomePage() {
       }).then(res => res.json())
       if (error) throw Error(error)
 
-      setProfile(data[0])
+      setProfile(data)
       setIsBusy(false)
     } catch (error) {
       console.error(error)
@@ -169,6 +170,8 @@ export default function HomePage() {
           <span>
             status: <em>{profile?.status || 'no status...'}</em>
           </span>
+          {' | '}
+          <Link href={`/profile/${address}`}>profile page</Link>
         </div>
 
         {/*  if session exists, display profile controls & logout button */}
