@@ -5,8 +5,9 @@ withSql(async sql => {
 
   await sql`
     CREATE TABLE IF NOT EXISTS profiles (
-        id SERIAL PRIMARY KEY NOT NULL,
-        status TEXT
+        address VARCHAR(42) UNIQUE NOT NULL,
+        status TEXT,
+        PRIMARY KEY (address)
     )
   `
 
