@@ -1,4 +1,5 @@
 * {
+  box-sizing: border-box;
   font-family: monospace;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.025em;
 }

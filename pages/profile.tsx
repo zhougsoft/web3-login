@@ -5,22 +5,11 @@ import { getCsrfToken, useSession, signIn, signOut } from 'next-auth/react'
 import { SiweMessage } from 'siwe'
 import type Profile from '../interfaces/Profile'
 import { useWeb3 } from '../hooks/useWeb3'
+import ConnectWallet from '../components/ConnectWallet'
 
-// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ProfilePage
 export default function ProfilePage() {
-  // ============================================================================ state
-  const {
-    isConnected,
-    address,
-    activeChain,
-    connectors,
-    pendingConnector,
-    connect,
-    disconnect,
-    signMessageAsync,
-  } = useWeb3()
+  const { isConnected, address, activeChain, signMessageAsync } = useWeb3()
   const { data: session } = useSession()
-
   const [profile, setProfile] = useState<Profile | undefined>()
   const [statusInput, setStatusInput] = useState<string>('')
   const [isBusy, setIsBusy] = useState<boolean>(false)
@@ -31,9 +20,9 @@ export default function ProfilePage() {
   async function fetchProfile(address: string) {
     try {
       setIsBusy(true)
-      const { data, error } = await fetch(`/api/profile/${address}`, {
-        cache: 'no-cache',
-      }).then(res => res.json())
+      const { data, error } = await fetch(`/api/profile/${address}`).then(res =>
+        res.json()
+      )
       if (error) throw Error(error)
 
       setProfile(data)
@@ -136,49 +125,20 @@ export default function ProfilePage() {
 
   // ============================================================================ render logic
 
-  // handles wallet connection buttons & connection flow
-  const renderConnectWallet = () => {
-    // is loading/not ready
-    if (isBusy || !connect) return <em>...</em>
-
-    // no wallet connected
-    if (!isConnected && connect) {
-      return (
-        <>
-          {connectors.map(connector => (
-            <button
-              disabled={!connector.ready}
-              key={connector.id}
-              onClick={() => connect({ connector })}
-            >
-              {connector.name.toLowerCase()}
-              {!connector.ready && ' (unsupported)'}
-              {isBusy &&
-                connector.id === pendingConnector?.id &&
-                ' (connecting)'}
-            </button>
-          ))}
-        </>
-      )
-    }
-
-    // wallet is connected
-    if (isConnected && address) {
-      return (
-        <>
-          <button onClick={() => disconnect()}>disconnect</button>
-          {' ~ '}
-          <span>
-            <em>connected: {address}</em>
-          </span>
-        </>
-      )
-    }
-  }
-
   const renderProfileControls = () => {
-    // is loading/not ready
-    if (isBusy || !connect) return <em>busy...</em>
+    if (isBusy) return <em>busy...</em>
+
+    // if wallet not connected, show prompt to connect
+    if (!address) return <div>connect wallet to see profile...</div>
+
+    // if wallet connected but not logged in, show login button
+    if (address && !session) {
+      return (
+        <>
+          <button onClick={handleLogin}>login to edit status</button>
+        </>
+      )
+    }
 
     // if session exists, display edit profile link & logout button
     if (session && session.address === address) {
@@ -199,18 +159,14 @@ export default function ProfilePage() {
       )
     }
 
-    // no session exists, display login button
-    return (
-      <>
-        <button onClick={handleLogin}>login to edit status</button>
-      </>
-    )
+    // return null component as a catch-all case
+    return <></>
   } // end renderUi()
 
   // ============================================================================ render
   return (
     <div>
-      {renderConnectWallet()}
+      <ConnectWallet />
       <div>
         <h1>profile</h1>
         {address && profile?.status ? (
