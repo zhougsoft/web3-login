@@ -3,16 +3,10 @@ import Link from 'next/link'
 import { getCsrfToken } from 'next-auth/react'
 import ConnectWallet from '../components/ConnectWallet'
 
-
 export default function HomePage() {
-
-
-
-
-
   return (
     <div>
-      <ConnectWallet/>
+      <ConnectWallet />
       <h1>home</h1>
       <Link href='/profile'>go to your profile</Link>
       <hr />
