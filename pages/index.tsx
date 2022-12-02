@@ -1,6 +1,4 @@
-import type { GetServerSidePropsContext } from 'next'
 import Link from 'next/link'
-import { getCsrfToken } from 'next-auth/react'
 import ConnectWallet from '../components/ConnectWallet'
 
 export default function HomePage() {
@@ -13,12 +11,4 @@ export default function HomePage() {
       <p>a simple web3 login with user profiles</p>
     </div>
   )
-} // end HomePage()
-
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  return {
-    props: {
-      csrfToken: await getCsrfToken(context),
-    },
-  }
 }

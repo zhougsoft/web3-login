@@ -1,9 +1,11 @@
+/*
+ *  an example route to fetch the active user's profile via their session
+ */
+
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getSession } from 'next-auth/react'
 import type Profile from '../../interfaces/Profile'
 import { read as readProfile } from '../../services/profiles'
-
-// route to fetch the user profile of the active session
 
 interface ResponseData {
   data?: Profile
@@ -15,7 +17,7 @@ export default async (
   res: NextApiResponse<ResponseData>
 ) => {
   try {
-    // fetch & validate the session
+    // fetch & validate the session and Ethereum address
     const session = await getSession({ req })
     if (
       !session ||
@@ -25,7 +27,7 @@ export default async (
       return res.status(400).json({ error: 'invalid session' })
     }
 
-    // get requested profile from database & return
+    // fetch and return the requested profile from the database
     const [data] = await readProfile(session.address)
     res.status(200).json({ data })
   } catch (error) {

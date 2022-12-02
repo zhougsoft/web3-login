@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import type { GetServerSidePropsContext } from 'next'
 import Link from 'next/link'
 import { getCsrfToken, useSession, signIn, signOut } from 'next-auth/react'
 import { SiweMessage } from 'siwe'
@@ -14,7 +13,7 @@ export default function ProfilePage() {
   const [statusInput, setStatusInput] = useState<string>('')
   const [isBusy, setIsBusy] = useState<boolean>(false)
 
-  // ============================================================================ data fetching
+  // ================================================================================= data fetching
 
   // fetch profile via Ethereum address
   async function fetchProfile(address: string) {
@@ -40,7 +39,7 @@ export default function ProfilePage() {
     }
   }, [address])
 
-  // ============================================================================ event handlers
+  // ================================================================================= event handlers
 
   // prompts user to sign message with wallet, then authenticates signature
   async function handleLogin(e: any) {
@@ -54,7 +53,7 @@ export default function ProfilePage() {
       }
       setIsBusy(true)
 
-      // create message for user to sign
+      // build message for user to sign in their wallet
       const message = new SiweMessage({
         domain: window.location.host,
         address,
@@ -65,18 +64,17 @@ export default function ProfilePage() {
         nonce: await getCsrfToken(),
       })
 
-      // sign message with wallet
+      // prompt the user to sign the message
       const signature = await signMessageAsync({
         message: message.prepareMessage(),
       })
 
-      // authenticate signature
+      // authenticate user's signature
       signIn('credentials', {
         message: JSON.stringify(message),
         signature,
         redirect: false,
       })
-
       setIsBusy(false)
     } catch (error: any) {
       // if user rejects login signature, exit silently
@@ -90,13 +88,13 @@ export default function ProfilePage() {
     }
   }
 
-  // when user takes action to end the session
+  // handle when the user takes action to end the session
   async function handleLogout(e: any) {
     e.preventDefault()
     signOut()
   }
 
-  // update profile record with current input values
+  // send request to update status in database with user input
   async function handleUpdateStatusSubmit(e: any) {
     try {
       e.preventDefault()
@@ -116,14 +114,15 @@ export default function ProfilePage() {
       }).then(res => res.json())
 
       setIsBusy(false)
-      // TODO: update UI more elegantly than force-refreshing the page
+
+      // force a post-back to fetch and display the updated data
       window.location.reload()
     } catch (error) {
       console.error(error)
     }
   }
 
-  // ============================================================================ render logic
+  // ================================================================================== render logic
 
   const renderProfileControls = () => {
     if (isBusy) return <em>busy...</em>
@@ -161,9 +160,9 @@ export default function ProfilePage() {
 
     // return null component as a catch-all case
     return <></>
-  } // end renderUi()
+  }
 
-  // ============================================================================ render
+  // ================================================================================= render
   return (
     <div>
       <ConnectWallet />
@@ -184,13 +183,4 @@ export default function ProfilePage() {
       {renderProfileControls()}
     </div>
   )
-} // end ProfilePage()
-
-// ============================================================================ getServerSideProps
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  return {
-    props: {
-      csrfToken: await getCsrfToken(context),
-    },
-  }
-} // end getServerSideProps
+}
