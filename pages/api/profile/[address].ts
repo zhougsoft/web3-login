@@ -20,7 +20,7 @@ export default async (
     const { address } = req.query
 
     // validate incoming address
-    if (!address || typeof address != 'string' || utils.isAddress(address)) {
+    if (!address || typeof address != 'string' || !utils.isAddress(address)) {
       return res.status(400).json({ error: 'invalid address query input' })
     }
 
