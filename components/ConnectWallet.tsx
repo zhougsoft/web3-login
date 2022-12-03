@@ -1,4 +1,4 @@
-import { useWeb3 } from '../hooks/useWeb3'
+import { useWeb3 } from '../hooks'
 
 // handles wallet connection buttons & connection flow
 export default function ConnectWallet() {

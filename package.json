@@ -1,5 +1,7 @@
 {
   "name": "web3-login",
+  "description": "a NextJS starter for passwordless web3 profiles",
+  "author": "zhoug",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -7,8 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "migrate:up": "node ./db/migrations/up.js",
-    "migrate:down": "node ./db/migrations/down.js"
+    "db:up": "node ./db/migrations/up.js",
+    "db:down": "node ./db/migrations/down.js"
   },
   "dependencies": {
     "@types/node": "18.11.9",

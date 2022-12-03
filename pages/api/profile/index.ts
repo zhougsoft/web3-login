@@ -1,5 +1,10 @@
+/*
+ *  POST, PUT & DELETE records from the 'profiles' table
+ */
+
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getSession } from 'next-auth/react'
+import { utils } from 'ethers'
 
 import type Profile from '../../../interfaces/Profile'
 import {
@@ -23,9 +28,21 @@ export default async (
     const sessionAddress = session?.address
     const inputAddress = inputData?.address
 
-    // protect routes by confirming the logged in address owns address record
-    if (sessionAddress?.toLowerCase() !== inputAddress?.toLowerCase()) {
-      return res.status(403).json({ error: 'invalid credentials' })
+    // validating incoming address data
+    if (
+      !sessionAddress ||
+      !inputAddress ||
+      typeof sessionAddress !== 'string' ||
+      typeof inputAddress !== 'string' ||
+      sessionAddress.length !== 42 ||
+      inputAddress.length !== 42
+    ) {
+      return res.status(400).json({ error: 'invalid address data' })
+    }
+
+    // protect route by confirming the authenticated address matches the profile getting updated
+    if (utils.getAddress(sessionAddress) !== utils.getAddress(inputAddress)) {
+      return res.status(403).json({ error: 'invalid address credentials' })
     }
 
     switch (req.method) {

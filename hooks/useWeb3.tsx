@@ -79,7 +79,7 @@ export function Web3Provider({ children }: Web3ProviderProps) {
   return <WagmiConfig client={client}>{children}</WagmiConfig>
 }
 
-export function useWeb3() {
+export default function useWeb3() {
   const router = useRouter()
   const [isMounted, setIsMounted] = useState<boolean>(false)
 

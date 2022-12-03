@@ -1,20 +1,18 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { getCsrfToken, useSession, signIn, signOut } from 'next-auth/react'
-import { SiweMessage } from 'siwe'
 import type Profile from '../interfaces/Profile'
-import { useWeb3 } from '../hooks/useWeb3'
+import { useWeb3, useAuth } from '../hooks'
 import ConnectWallet from '../components/ConnectWallet'
 
 export default function ProfilePage() {
-  const { isConnected, address, activeChain, signMessageAsync } = useWeb3()
-  const { data: session } = useSession()
+  // ================================================================================== state
+  const { isConnected, address } = useWeb3()
+  const { session, signIn, signOut } = useAuth()
   const [profile, setProfile] = useState<Profile | undefined>()
   const [statusInput, setStatusInput] = useState<string>('')
   const [isBusy, setIsBusy] = useState<boolean>(false)
 
-  // ================================================================================= data fetching
-
+  // ================================================================================== data fetching
   // fetch profile via Ethereum address
   async function fetchProfile(address: string) {
     try {
@@ -29,72 +27,20 @@ export default function ProfilePage() {
     } catch (error) {
       console.error(error)
       setIsBusy(false)
+      alert('error: failed to fetch profile')
     }
   }
 
-  // fetch all existing profiles on page load
+  // fetch profile for active connected wallet
   useEffect(() => {
     if (address !== undefined) {
       fetchProfile(address)
     }
   }, [address])
 
-  // ================================================================================= event handlers
+  // ================================================================================== event handlers
 
-  // prompts user to sign message with wallet, then authenticates signature
-  async function handleLogin(e: any) {
-    try {
-      e.preventDefault()
-      if (!isConnected || !address || !activeChain) {
-        console.warn(
-          'WARNING: ProfilePage - handleLogin() was called with no wallet connected'
-        )
-        return
-      }
-      setIsBusy(true)
-
-      // build message for user to sign in their wallet
-      const message = new SiweMessage({
-        domain: window.location.host,
-        address,
-        statement: 'Sign in with Ethereum',
-        uri: window.location.origin,
-        version: '1',
-        chainId: activeChain.id,
-        nonce: await getCsrfToken(),
-      })
-
-      // prompt the user to sign the message
-      const signature = await signMessageAsync({
-        message: message.prepareMessage(),
-      })
-
-      // authenticate user's signature
-      signIn('credentials', {
-        message: JSON.stringify(message),
-        signature,
-        redirect: false,
-      })
-      setIsBusy(false)
-    } catch (error: any) {
-      // if user rejects login signature, exit silently
-      if (error.code === 'ACTION_REJECTED') {
-        setIsBusy(false)
-        return
-      }
-
-      console.error(error)
-      alert('error signing the message!\ncheck the browser console...')
-    }
-  }
-
-  // handle when the user takes action to end the session
-  async function handleLogout(e: any) {
-    e.preventDefault()
-    signOut()
-  }
-
-  // send request to update status in database with user input
+  // send API request to update the database with user input
   async function handleUpdateStatusSubmit(e: any) {
     try {
       e.preventDefault()
@@ -122,7 +68,7 @@ export default function ProfilePage() {
     }
   }
 
-  // ================================================================================== render logic
+  // ================================================================================== profile controls logic
 
   const renderProfileControls = () => {
     if (isBusy) return <em>busy...</em>
@@ -134,7 +80,7 @@ export default function ProfilePage() {
     if (address && !session) {
       return (
         <>
-          <button onClick={handleLogin}>login to edit status</button>
+          <button onClick={() => signIn()}>login to edit status</button>
         </>
       )
     }
@@ -153,7 +99,7 @@ export default function ProfilePage() {
             </button>
           </form>
           <br />
-          <button onClick={handleLogout}>logout</button>
+          <button onClick={() => signOut()}>logout</button>
         </>
       )
     }
@@ -162,9 +108,9 @@ export default function ProfilePage() {
     return <></>
   }
 
-  // ================================================================================= render
+  // ================================================================================= page render
   return (
-    <div>
+    <>
       <ConnectWallet />
       <div>
         <h1>profile</h1>
@@ -181,6 +127,6 @@ export default function ProfilePage() {
       <Link href='/'>back home</Link>
       <hr />
       {renderProfileControls()}
-    </div>
+    </>
   )
 }
