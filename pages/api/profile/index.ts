@@ -34,8 +34,8 @@ export default async (
       !inputAddress ||
       typeof sessionAddress !== 'string' ||
       typeof inputAddress !== 'string' ||
-      sessionAddress.length !== 42 ||
-      inputAddress.length !== 42
+      utils.isAddress(sessionAddress) ||
+      utils.isAddress(inputAddress)
     ) {
       return res.status(400).json({ error: 'invalid address data' })
     }
