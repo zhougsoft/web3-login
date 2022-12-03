@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, FormEvent } from 'react'
 import Link from 'next/link'
+
 import type Profile from '../interfaces/Profile'
 import { useWeb3, useAuth } from '../hooks'
+import { truncateAddress } from '../utils'
 import ConnectWallet from '../components/ConnectWallet'
 
 export default function ProfilePage() {
@@ -9,11 +11,11 @@ export default function ProfilePage() {
   const { isConnected, address } = useWeb3()
   const { session, signIn, signOut } = useAuth()
   const [profile, setProfile] = useState<Profile | undefined>()
-  const [statusInput, setStatusInput] = useState<string>('')
   const [isBusy, setIsBusy] = useState<boolean>(false)
+  const statusInputRef = useRef<HTMLInputElement>(null)
 
   // ================================================================================== data fetching
-  // fetch profile via Ethereum address
+  // fetch profile via an Ethereum address
   async function fetchProfile(address: string) {
     try {
       setIsBusy(true)
@@ -41,16 +43,19 @@ export default function ProfilePage() {
   // ================================================================================== event handlers
 
   // send API request to update the database with user input
-  async function handleUpdateStatusSubmit(e: any) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     try {
-      e.preventDefault()
-      // only run if wallet is connected, user is authenticated and there is input in the status field
+      // prevent a postback and grab data from the input
+      event.preventDefault()
+      const statusInput = statusInputRef?.current?.value
+
+      // abort if wallet is not connected, user is not authenticated or no form input
       if (!isConnected || !address || !session || !statusInput) {
         return
       }
-      setIsBusy(true)
 
       // fetch user's up-to-date profile record
+      setIsBusy(true)
       await fetchProfile(address)
 
       // either update existing profile, or create new profile if one doesn't exist for address
@@ -58,8 +63,6 @@ export default function ProfilePage() {
         method: profile ? 'PUT' : 'POST',
         body: JSON.stringify({ address, status: statusInput }),
       }).then(res => res.json())
-
-      setIsBusy(false)
 
       // force a post-back to fetch and display the updated data
       window.location.reload()
@@ -90,10 +93,11 @@ export default function ProfilePage() {
       return (
         <>
           <p>
-            <em>logged in as:</em> <strong>{session.address}</strong>
+            <em>logged in as:</em>{' '}
+            <strong>{truncateAddress(session.address)}</strong>
           </p>
-          <form onSubmit={handleUpdateStatusSubmit}>
-            <input type='text' onChange={e => setStatusInput(e.target.value)} />
+          <form onSubmit={handleSubmit}>
+            <input type='text' ref={statusInputRef} />
             <button type='submit'>
               <strong>update status</strong>
             </button>
@@ -112,7 +116,7 @@ export default function ProfilePage() {
   return (
     <>
       <ConnectWallet />
-      <div>
+      <>
         <h1>profile</h1>
         {address && profile?.status ? (
           <p>
@@ -123,7 +127,7 @@ export default function ProfilePage() {
         ) : (
           <></>
         )}
-      </div>
+      </>
       <Link href='/'>back home</Link>
       <hr />
       {renderProfileControls()}

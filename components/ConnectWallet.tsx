@@ -1,4 +1,5 @@
 import { useWeb3 } from '../hooks'
+import { truncateAddress } from '../utils'
 
 // handles wallet connection buttons & connection flow
 export default function ConnectWallet() {
@@ -34,9 +35,8 @@ export default function ConnectWallet() {
     return (
       <>
         <button onClick={() => disconnect()}>disconnect</button>
-        {' ~ '}
         <span>
-          <em>connected: {address}</em>
+          <em> ~ connected: {truncateAddress(address)}</em>
         </span>
       </>
     )
