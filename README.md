@@ -1,6 +1,6 @@
 # web3-login
 
-> a starter for fullstack passwordless web3 profiles with Next.js, Postgres & [SIWE](https://eips.ethereum.org/EIPS/eip-4361)
+> a starter for fullstack passwordless web3 profiles with Next.js, TypeScript, Postgres & [SIWE](https://eips.ethereum.org/EIPS/eip-4361)
 
 ## requirements
 
