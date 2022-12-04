@@ -5,7 +5,7 @@ withSql(async sql => {
 
   // create profiles table
   await sql`
-    CREATE TABLE IF NOT EXISTS profiles (
+    CREATE TABLE profiles (
         profile_id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
         address VARCHAR(42) UNIQUE NOT NULL,
         status VARCHAR
