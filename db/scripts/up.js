@@ -1,4 +1,4 @@
-const { withSql } = require('./utils/with-sql')
+const { withSql } = require('./utils')
 
 withSql(async sql => {
   console.log('migrating db up...')
@@ -8,7 +8,7 @@ withSql(async sql => {
     CREATE TABLE profiles (
         profile_id uuid PRIMARY KEY DEFAULT gen_random_uuid (),
         address VARCHAR(42) UNIQUE NOT NULL,
-        status VARCHAR
+        status TEXT
     )
   `
 

@@ -9,8 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:up": "node ./db/migrations/up.js",
-    "db:down": "node ./db/migrations/down.js"
+    "db:up": "node ./db/scripts/up.js",
+    "db:down": "node ./db/scripts/down.js"
   },
   "dependencies": {
     "@types/node": "18.11.10",

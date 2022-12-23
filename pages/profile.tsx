@@ -80,7 +80,7 @@ export default function ProfilePage() {
     if (!address) return <div>connect wallet to see profile...</div>
 
     // if wallet connected but not logged in, show login button
-    if (address && !session) {
+    if (address && !session?.address) {
       return (
         <>
           <button onClick={() => signIn()}>login to edit status</button>
