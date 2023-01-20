@@ -2,10 +2,10 @@
 
 > a starter for fullstack passwordless web3 profiles with Next.js, TypeScript, Postgres & [SIWE](https://eips.ethereum.org/EIPS/eip-4361)
 
-## requirements
+## pre-reqs
 
 - a postgres database with a connection URL
-- an [alchemy](https://www.alchemy.com) or [infura](https://infura.io) API key
+- _(optional)_ an [alchemy](https://www.alchemy.com) or [infura](https://infura.io) API key
 
 ## to run
 
